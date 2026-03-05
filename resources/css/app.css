@@ -1,0 +1,97 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+@layer components {
+    /* ── Buttons ───────────────────────────────── */
+    .btn {
+        @apply inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-xl text-sm font-medium transition-colors cursor-pointer;
+    }
+    .btn-primary {
+        @apply inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-xl text-sm font-semibold transition-colors cursor-pointer
+               bg-amber-400 text-amber-950 hover:bg-amber-300 active:bg-amber-500
+               focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2;
+    }
+    .btn-secondary {
+        @apply inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-xl text-sm font-medium transition-colors cursor-pointer
+               bg-white text-stone-600 border border-stone-200 hover:bg-stone-50 active:bg-stone-100
+               focus:outline-none focus:ring-2 focus:ring-stone-300 focus:ring-offset-1;
+    }
+    .btn-danger {
+        @apply inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-xl text-sm font-medium transition-colors cursor-pointer
+               bg-white text-red-500 border border-red-200 hover:bg-red-50 active:bg-red-100
+               focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-1;
+    }
+
+    /* ── Badges ────────────────────────────────── */
+    .badge {
+        @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium;
+    }
+    .badge-success {
+        @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200;
+    }
+    .badge-error {
+        @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-600 border border-red-200;
+    }
+    .badge-gray {
+        @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-stone-100 text-stone-500;
+    }
+    .badge-blue {
+        @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-600 border border-blue-100;
+    }
+    .badge-purple {
+        @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-50 text-purple-600 border border-purple-100;
+    }
+
+    /* ── Cards ─────────────────────────────────── */
+    .card {
+        @apply bg-white border border-stone-200 rounded-2xl p-5;
+    }
+
+    /* ── Task row card ─────────────────────────── */
+    .task-row {
+        @apply flex items-center gap-5 p-5 rounded-2xl border border-stone-200 bg-white
+               hover:border-stone-300 hover:shadow-sm transition-all;
+    }
+    .task-row-failed {
+        @apply flex items-center gap-5 p-5 rounded-2xl border border-red-200 bg-red-50/50
+               hover:shadow-sm transition-all;
+    }
+    .task-row-disabled {
+        @apply flex items-center gap-5 p-5 rounded-2xl border border-stone-100 bg-stone-50/50
+               opacity-60 hover:opacity-80 transition-all;
+    }
+
+    /* ── Form elements ────────────────────────── */
+    .form-label {
+        @apply block text-sm font-medium text-stone-700 mb-1.5;
+    }
+    .form-input {
+        @apply block w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900
+               placeholder:text-stone-400
+               focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400/20
+               transition-colors;
+    }
+    .form-hint {
+        @apply mt-1.5 text-xs text-stone-400;
+    }
+    .form-error {
+        @apply mt-1.5 text-sm text-red-500;
+    }
+    .form-group {
+        @apply mb-5;
+    }
+
+    /* ── Cron pill ──────────────────────────────── */
+    .cron-pill {
+        @apply font-mono text-xs bg-amber-50 text-amber-700 px-2.5 py-1 rounded-lg border border-amber-100;
+    }
+}
