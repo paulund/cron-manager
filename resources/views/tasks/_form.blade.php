@@ -54,9 +54,12 @@
     <p x-show="type === 'shell'" class="text-sm text-stone-500 mb-2">
         Any shell command — e.g. <code class="font-mono text-xs">git pull origin main</code>
     </p>
-    <p x-show="type === 'claude'" class="text-sm text-blue-600 mb-2">
-        Claude CLI — e.g. <code class="font-mono text-xs">claude --dangerously-skip-permissions -p "summarize recent changes"</code>
-    </p>
+    <div x-show="type === 'claude'" class="text-sm text-blue-700 bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 mb-2 space-y-1">
+        <p>Claude CLI runs non-interactively using your <code class="font-mono text-xs bg-blue-100 px-1 rounded">~/.claude/</code> login credentials (no API key needed).</p>
+        <p>Required flags: <code class="font-mono text-xs bg-blue-100 px-1 rounded">--dangerously-skip-permissions</code> (skips interactive prompts) and <code class="font-mono text-xs bg-blue-100 px-1 rounded">-p "your prompt"</code> (print mode).</p>
+        <p>Example: <code class="font-mono text-xs bg-blue-100 px-1 rounded">claude --dangerously-skip-permissions -p "summarize recent git changes"</code></p>
+        <p>If <code class="font-mono text-xs bg-blue-100 px-1 rounded">claude</code> isn't on your cron PATH, set <code class="font-mono text-xs bg-blue-100 px-1 rounded">CLAUDE_BINARY=/full/path/to/claude</code> in <code class="font-mono text-xs bg-blue-100 px-1 rounded">.env</code>. Check <a href="{{ route('health') }}" class="underline">Health</a> for status.</p>
+    </div>
     <p x-show="type === 'copilot'" class="text-sm text-purple-600 mb-2">
         GitHub Copilot CLI — e.g. <code class="font-mono text-xs">gh copilot suggest "explain this error"</code>
     </p>

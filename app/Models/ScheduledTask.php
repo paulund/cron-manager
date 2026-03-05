@@ -88,7 +88,18 @@ class ScheduledTask extends Model
             }
         }
 
-        $command = $envPrefix.$this->command;
+        $command = $this->command;
+
+        // For Claude CLI tasks, replace a bare 'claude' at the start of the command
+        // with the configured binary path so cron (which has a minimal PATH) can find it.
+        if ($this->command_type === 'claude') {
+            $binary = env('CLAUDE_BINARY', 'claude');
+            if ($binary !== 'claude') {
+                $command = preg_replace('/^claude\b/', escapeshellcmd($binary), $command);
+            }
+        }
+
+        $command = $envPrefix.$command;
 
         if ($this->working_directory) {
             return 'cd '.escapeshellarg($this->working_directory).' && '.$command;

@@ -67,7 +67,7 @@
     </div>
 
     {{-- Crontab detection --}}
-    <div class="flex items-center gap-3 px-5 py-4 rounded-2xl border {{ $cronInstalled ? 'border-emerald-200 bg-emerald-50/40' : 'border-stone-200 bg-white' }} mb-8">
+    <div class="flex items-center gap-3 px-5 py-4 rounded-2xl border {{ $cronInstalled ? 'border-emerald-200 bg-emerald-50/40' : 'border-stone-200 bg-white' }} mb-4">
         @if($cronInstalled)
         <svg class="w-4 h-4 text-emerald-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
@@ -80,6 +80,73 @@
         <span class="text-sm text-stone-500">No crontab entry found for this project</span>
         @endif
     </div>
+
+    {{-- Claude CLI health --}}
+    @if($claudeTaskCount > 0 || $claudeBinaryFound || $claudeCredsExist)
+    <div class="rounded-2xl border border-stone-200 bg-white overflow-hidden mb-8">
+        <div class="px-6 py-4 border-b border-stone-100 flex items-center gap-3">
+            <span class="text-sm font-semibold text-stone-800">Claude CLI</span>
+            @if($claudeTaskCount > 0)
+            <span class="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">{{ $claudeTaskCount }} {{ Str::plural('task', $claudeTaskCount) }}</span>
+            @endif
+        </div>
+        <div class="divide-y divide-stone-100">
+            {{-- Binary check --}}
+            <div class="flex items-start gap-3 px-6 py-4">
+                @if($claudeBinaryFound)
+                <svg class="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+                <div>
+                    <p class="text-sm text-emerald-700 font-medium">Binary found</p>
+                    <code class="text-xs text-stone-400 font-mono">{{ $claudeBinaryResolved }}</code>
+                </div>
+                @else
+                <svg class="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" /></svg>
+                <div>
+                    <p class="text-sm text-red-600 font-medium"><code class="font-mono">{{ $claudeBinary }}</code> not found on PATH</p>
+                    <p class="text-xs text-stone-500 mt-1">
+                        Find the full path with <code class="font-mono bg-stone-100 px-1 rounded">which claude</code> (run as yourself, not root),
+                        then set <code class="font-mono bg-stone-100 px-1 rounded">CLAUDE_BINARY=/full/path/to/claude</code> in your <code class="font-mono bg-stone-100 px-1 rounded">.env</code>.
+                    </p>
+                </div>
+                @endif
+            </div>
+
+            {{-- Credentials check --}}
+            <div class="flex items-start gap-3 px-6 py-4">
+                @if($claudeCredsExist)
+                <svg class="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+                <div>
+                    <p class="text-sm text-emerald-700 font-medium">Credentials directory exists</p>
+                    <code class="text-xs text-stone-400 font-mono">{{ $claudeCredsPath }}</code>
+                </div>
+                @else
+                <svg class="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" /></svg>
+                <div>
+                    <p class="text-sm text-red-600 font-medium">Not logged in to Claude CLI</p>
+                    <p class="text-xs text-stone-500 mt-1">
+                        Run <code class="font-mono bg-stone-100 px-1 rounded">claude login</code> as the same user whose crontab runs this app.
+                        Claude CLI uses OAuth credentials stored in <code class="font-mono bg-stone-100 px-1 rounded">~/.claude/</code> — no API key needed.
+                    </p>
+                </div>
+                @endif
+            </div>
+
+            {{-- HOME note --}}
+            <div class="flex items-start gap-3 px-6 py-4 bg-blue-50/40">
+                <svg class="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" /></svg>
+                <div>
+                    <p class="text-sm text-blue-700 font-medium">HOME must be set in the cron environment</p>
+                    <p class="text-xs text-stone-500 mt-1">
+                        Cron strips most environment variables. The cron entry below exports <code class="font-mono bg-stone-100 px-1 rounded">HOME</code>
+                        so <code class="font-mono bg-stone-100 px-1 rounded">claude</code> can find <code class="font-mono bg-stone-100 px-1 rounded">~/.claude/</code> credentials.
+                        No user change to the crontab is required — just make sure you're running <code class="font-mono bg-stone-100 px-1 rounded">crontab -e</code>
+                        as the user who ran <code class="font-mono bg-stone-100 px-1 rounded">claude login</code>.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
 
     {{-- Setup instructions (shown when not healthy) --}}
     @if($status !== 'healthy')

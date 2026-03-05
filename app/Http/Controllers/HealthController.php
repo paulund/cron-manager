@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Models\ScheduledTask;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 
@@ -29,8 +30,21 @@ final class HealthController extends Controller
 
         $phpBinary = PHP_BINARY;
         $projectPath = base_path();
-        $cronEntry = "* * * * * cd {$projectPath} && {$phpBinary} artisan schedule:run >> /dev/null 2>&1";
+        // Export HOME so the claude CLI can locate ~/.claude/ credentials in the cron environment
+        $cronEntry = "* * * * * HOME=\$HOME cd {$projectPath} && {$phpBinary} artisan schedule:run >> /dev/null 2>&1";
 
-        return view('health.index', compact('status', 'lastSeen', 'ageSeconds', 'cronInstalled', 'cronEntry'));
+        // Claude CLI readiness checks
+        $claudeBinary = env('CLAUDE_BINARY', 'claude');
+        $claudeBinaryResolved = trim((string) shell_exec('command -v '.escapeshellarg($claudeBinary).' 2>/dev/null'));
+        $claudeBinaryFound = $claudeBinaryResolved !== '';
+        $claudeCredsPath = ($_SERVER['HOME'] ?? getenv('HOME') ?: '') . '/.claude';
+        $claudeCredsExist = is_dir($claudeCredsPath);
+        $claudeTaskCount = ScheduledTask::where('command_type', 'claude')->count();
+
+        return view('health.index', compact(
+            'status', 'lastSeen', 'ageSeconds', 'cronInstalled', 'cronEntry',
+            'claudeBinary', 'claudeBinaryFound', 'claudeBinaryResolved',
+            'claudeCredsExist', 'claudeCredsPath', 'claudeTaskCount',
+        ));
     }
 }
