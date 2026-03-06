@@ -80,7 +80,7 @@
         name="working_directory"
         id="working_directory"
         class="form-input font-mono text-sm"
-        placeholder="/Users/paul/my-project"
+        placeholder="/path/to/project"
         value="{{ old('working_directory', $task?->working_directory ?? '') }}">
     <p class="text-xs text-stone-400 mt-1">Absolute path. Leave blank to use the app root.</p>
     @error('working_directory') <p class="form-error">{{ $message }}</p> @enderror
