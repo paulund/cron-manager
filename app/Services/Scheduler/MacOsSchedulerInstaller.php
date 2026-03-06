@@ -10,7 +10,9 @@ final class MacOsSchedulerInstaller implements SchedulerInstallerInterface
 
     private function plistPath(): string
     {
-        return ($_SERVER['HOME'] ?? '~') . '/Library/LaunchAgents/' . self::LABEL . '.plist';
+        $home = getenv('HOME') ?: ($_SERVER['HOME'] ?? '~');
+
+        return $home . '/Library/LaunchAgents/' . self::LABEL . '.plist';
     }
 
     private function plistContent(): string
@@ -18,8 +20,8 @@ final class MacOsSchedulerInstaller implements SchedulerInstallerInterface
         $phpBinary = PHP_BINARY;
         $artisan = base_path('artisan');
         $logPath = storage_path('logs/scheduler.log');
-        $home = $_SERVER['HOME'] ?? '/tmp';
-        $user = $_SERVER['USER'] ?? '';
+        $home = getenv('HOME') ?: ($_SERVER['HOME'] ?? '/tmp');
+        $user = getenv('USER') ?: ($_SERVER['USER'] ?? '');
         // Prepend known user binary locations so launchd's minimal PATH finds tools like claude
         $basePath = '/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin';
         $path = "{$home}/.local/bin:/opt/homebrew/bin:{$basePath}";
