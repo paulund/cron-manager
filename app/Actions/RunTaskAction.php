@@ -23,7 +23,18 @@ final class RunTaskAction
             'triggered_by' => 'manual',
         ]);
 
+        $extraPath = env('EXTRA_PATH', '');
+        $currentPath = getenv('PATH') ?: '/usr/local/bin:/usr/bin:/bin';
+        $path = $extraPath ? $extraPath.':'.$currentPath : $currentPath;
+
         $result = Process::path($task->working_directory ?? base_path())
+            ->env([
+                'PATH'    => $path,
+                'HOME'    => getenv('HOME') ?: ($_SERVER['HOME'] ?? ''),
+                'USER'    => getenv('USER') ?: ($_SERVER['USER'] ?? ''),
+                'LOGNAME' => getenv('LOGNAME') ?: ($_SERVER['LOGNAME'] ?? ''),
+                'SHELL'   => getenv('SHELL') ?: ($_SERVER['SHELL'] ?? '/bin/zsh'),
+            ])
             ->timeout(300)
             ->run($task->command);
 

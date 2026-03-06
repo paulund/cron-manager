@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Services\Scheduler\SchedulerInstallerFactory;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 
 final class HealthController extends Controller
 {
+    public function __construct(private readonly SchedulerInstallerFactory $factory) {}
+
     public function __invoke(): View
     {
         $heartbeatPath = storage_path('app/scheduler-heartbeat');
@@ -31,6 +34,15 @@ final class HealthController extends Controller
         $projectPath = base_path();
         $cronEntry = "* * * * * cd {$projectPath} && {$phpBinary} artisan schedule:run >> /dev/null 2>&1";
 
-        return view('health.index', compact('status', 'lastSeen', 'ageSeconds', 'cronInstalled', 'cronEntry'));
+        $installer = $this->factory->make();
+        $schedulerInstalled = $installer->isInstalled();
+        $schedulerLoaded = $schedulerInstalled && $installer->isLoaded();
+        $installCommand = 'php artisan scheduler:install';
+
+        return view('health.index', compact(
+            'status', 'lastSeen', 'ageSeconds',
+            'cronInstalled', 'cronEntry',
+            'schedulerInstalled', 'schedulerLoaded', 'installCommand',
+        ));
     }
 }

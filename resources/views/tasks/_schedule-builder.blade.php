@@ -1,7 +1,7 @@
 <div
     x-data="scheduleBuilder('{{ $expression }}')"
     class="space-y-4"
-    x-init="fetchPreview()"
+    x-init="fetchPreview()">
     <input type="hidden" name="cron_expression" :value="cronExpression">
 
     <div class="flex gap-3 items-center">
