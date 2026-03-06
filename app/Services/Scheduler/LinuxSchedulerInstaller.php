@@ -23,6 +23,19 @@ final class LinuxSchedulerInstaller implements SchedulerInstallerInterface
         return $this->systemdDir() . '/' . self::UNIT_NAME . '.timer';
     }
 
+    /**
+     * Escape a path for use as a systemd ExecStart argument.
+     * Wraps the value in double quotes and escapes backslashes and double quotes
+     * using systemd's C-style string escaping, so paths with spaces or special
+     * characters are parsed correctly by systemd.
+     */
+    private function escapeExecArg(string $path): string
+    {
+        $escaped = str_replace(['\\', '"'], ['\\\\', '\\"'], $path);
+
+        return '"' . $escaped . '"';
+    }
+
     private function serviceContent(): string
     {
         $phpBinary = PHP_BINARY;
@@ -32,8 +45,9 @@ final class LinuxSchedulerInstaller implements SchedulerInstallerInterface
         // Prepend known user binary locations so systemd's minimal PATH finds tools like claude
         $basePath = '/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin';
         $path = "{$home}/.local/bin:{$basePath}";
+        $execStart = $this->escapeExecArg($phpBinary) . ' ' . $this->escapeExecArg($artisan) . ' schedule:run';
 
-        return "[Unit]\nDescription=Cron Manager Scheduler\n\n[Service]\nType=oneshot\nEnvironment=HOME={$home}\nEnvironment=USER={$user}\nEnvironment=LOGNAME={$user}\nEnvironment=PATH={$path}\nExecStart={$phpBinary} {$artisan} schedule:run\n";
+        return "[Unit]\nDescription=Cron Manager Scheduler\n\n[Service]\nType=oneshot\nEnvironment=HOME={$home}\nEnvironment=USER={$user}\nEnvironment=LOGNAME={$user}\nEnvironment=PATH={$path}\nExecStart={$execStart}\n";
     }
 
     private function timerContent(): string
