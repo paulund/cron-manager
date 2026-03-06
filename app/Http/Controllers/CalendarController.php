@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Models\ScheduledTask;
-use App\Models\TaskRun;
 use Carbon\Carbon;
 use Cron\CronExpression;
 use Illuminate\Contracts\View\View;
@@ -28,18 +27,11 @@ final class CalendarController
         $startOfMonth = $month->copy()->startOfMonth();
         $endOfMonth = $month->copy()->endOfMonth();
 
-        $taskRuns = TaskRun::with('scheduledTask')
-            ->whereBetween('started_at', [$startOfMonth, $endOfMonth])
-            ->orderBy('started_at')
-            ->get()
-            ->groupBy(fn (TaskRun $run): string => $run->started_at->format('Y-m-d'));
-
         $upcoming = $this->projectUpcomingRuns($startOfMonth, $endOfMonth);
 
         return view('calendar.index', [
             'month' => $month,
             'weeks' => $this->buildGrid($month),
-            'taskRuns' => $taskRuns,
             'upcoming' => $upcoming,
             'prevMonth' => $month->copy()->subMonth()->format('Y-m'),
             'nextMonth' => $month->copy()->addMonth()->format('Y-m'),
@@ -79,6 +71,10 @@ final class CalendarController
                 // Invalid cron expression — skip
             }
         });
+
+        foreach ($upcoming as &$dayRuns) {
+            usort($dayRuns, fn ($a, $b) => $a['time']->timestamp <=> $b['time']->timestamp);
+        }
 
         return $upcoming;
     }
