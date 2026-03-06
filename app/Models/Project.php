@@ -21,6 +21,9 @@ class Project extends Model
         'description',
     ];
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<\App\Models\ScheduledTask, $this>
+     */
     public function tasks(): HasMany
     {
         return $this->hasMany(ScheduledTask::class);

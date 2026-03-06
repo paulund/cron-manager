@@ -19,10 +19,10 @@ final class CalendarController
 
         try {
             $month = $monthParam
-                ? Carbon::createFromFormat('Y-m', $monthParam)->startOfMonth()
-                : Carbon::now()->startOfMonth();
+                ? (\Illuminate\Support\Facades\Date::createFromFormat('Y-m', $monthParam) ?? \Illuminate\Support\Facades\Date::now())->startOfMonth()
+                : \Illuminate\Support\Facades\Date::now()->startOfMonth();
         } catch (\Exception) {
-            $month = Carbon::now()->startOfMonth();
+            $month = \Illuminate\Support\Facades\Date::now()->startOfMonth();
         }
 
         $startOfMonth = $month->copy()->startOfMonth();
@@ -30,7 +30,7 @@ final class CalendarController
 
         $taskRuns = TaskRun::with('scheduledTask')
             ->whereBetween('started_at', [$startOfMonth, $endOfMonth])
-            ->orderBy('started_at')
+            ->oldest('started_at')
             ->get()
             ->groupBy(fn (TaskRun $run): string => $run->started_at->format('Y-m-d'));
 
@@ -57,8 +57,8 @@ final class CalendarController
             return $upcoming;
         }
 
-        $projectionStart = Carbon::now()->isAfter($startOfMonth)
-            ? Carbon::now()
+        $projectionStart = \Illuminate\Support\Facades\Date::now()->isAfter($startOfMonth)
+            ? \Illuminate\Support\Facades\Date::now()
             : $startOfMonth;
 
         ScheduledTask::enabled()->get()->each(function (ScheduledTask $task) use ($projectionStart, $endOfMonth, &$upcoming): void {
@@ -66,7 +66,7 @@ final class CalendarController
                 $expr = new CronExpression($task->cron_expression);
 
                 for ($nth = 0; $nth < 30; $nth++) {
-                    $runDate = Carbon::instance($expr->getNextRunDate($projectionStart->toDateTimeString(), $nth));
+                    $runDate = \Illuminate\Support\Facades\Date::instance($expr->getNextRunDate($projectionStart->toDateTimeString(), $nth));
 
                     if ($runDate->isAfter($endOfMonth)) {
                         break;
@@ -81,7 +81,7 @@ final class CalendarController
         });
 
         foreach ($upcoming as &$dayRuns) {
-            usort($dayRuns, fn ($a, $b) => $a['time']->timestamp <=> $b['time']->timestamp);
+            usort($dayRuns, fn (array $a, array $b): int => $a['time']->timestamp <=> $b['time']->timestamp);
         }
 
         return $upcoming;

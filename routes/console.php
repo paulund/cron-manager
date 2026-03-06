@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Schedule;
 use Illuminate\Support\Facades\Schema;
 
 // Heartbeat: touch a file every minute so the UI can show scheduler health
-Schedule::call(fn () => touch(storage_path('app/scheduler-heartbeat')))->everyMinute();
+Schedule::call(fn (): bool => touch(storage_path('app/scheduler-heartbeat')))->everyMinute();
 
 if (Schema::hasTable('scheduled_tasks')) {
     ScheduledTask::enabled()->each(function (ScheduledTask $task): void {
@@ -76,7 +76,7 @@ if (Schema::hasTable('scheduled_tasks')) {
                 ]);
 
                 if ($run) {
-                    app(NotifyTaskFailureAction::class)($task, $run->fresh());
+                    resolve(NotifyTaskFailureAction::class)($task, $run->fresh() ?? $run);
                 }
 
                 $task->pruneHistory();

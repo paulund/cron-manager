@@ -16,7 +16,7 @@ final class ProjectController extends Controller
     {
         $projects = Project::withCount('tasks')->orderBy('name')->get();
 
-        return view('projects.index', compact('projects'));
+        return view('projects.index', ['projects' => $projects]);
     }
 
     public function create(): View
@@ -28,25 +28,25 @@ final class ProjectController extends Controller
     {
         Project::create($request->validated());
 
-        return redirect()->route('projects.index')->with('success', 'Project created.');
+        return to_route('projects.index')->with('success', 'Project created.');
     }
 
     public function edit(Project $project): View
     {
-        return view('projects.edit', compact('project'));
+        return view('projects.edit', ['project' => $project]);
     }
 
     public function update(UpdateProjectRequest $request, Project $project): RedirectResponse
     {
         $project->update($request->validated());
 
-        return redirect()->route('projects.index')->with('success', 'Project updated.');
+        return to_route('projects.index')->with('success', 'Project updated.');
     }
 
     public function destroy(Project $project): RedirectResponse
     {
         $project->delete();
 
-        return redirect()->route('projects.index')->with('success', 'Project deleted. Its tasks are now uncategorised.');
+        return to_route('projects.index')->with('success', 'Project deleted. Its tasks are now uncategorised.');
     }
 }

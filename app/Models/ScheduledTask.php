@@ -9,6 +9,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
+/**
+ * @property \Carbon\CarbonImmutable|null $paused_until
+ * @property array<int, array{key: string, value: string}>|null $env_vars
+ */
 class ScheduledTask extends Model
 {
     protected $fillable = [
@@ -19,47 +23,59 @@ class ScheduledTask extends Model
         'depends_on_task_id', 'paused_until',
     ];
 
-    protected $casts = [
-        'is_enabled' => 'boolean',
-        'prevent_overlap' => 'boolean',
-        'notify_on_failure' => 'boolean',
-        'runs_to_keep' => 'integer',
-        'env_vars' => 'array',
-        'last_run_at' => 'immutable_datetime',
-        'paused_until' => 'immutable_datetime',
-    ];
-
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<\App\Models\Project, $this>
+     */
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
     }
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<\App\Models\ScheduledTask, $this>
+     */
     public function dependsOn(): BelongsTo
     {
         return $this->belongsTo(ScheduledTask::class, 'depends_on_task_id');
     }
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<\App\Models\ScheduledTask, $this>
+     */
     public function dependents(): HasMany
     {
         return $this->hasMany(ScheduledTask::class, 'depends_on_task_id');
     }
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany<\App\Models\Tag, $this, \Illuminate\Database\Eloquent\Relations\Pivot>
+     */
     public function tags(): BelongsToMany
     {
         return $this->belongsToMany(Tag::class, 'scheduled_task_tag');
     }
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<\App\Models\TaskRun, $this>
+     */
     public function taskRuns(): HasMany
     {
         return $this->hasMany(TaskRun::class);
     }
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne<\App\Models\TaskRun, $this>
+     */
     public function latestRun(): HasOne
     {
         return $this->hasOne(TaskRun::class)->latestOfMany('started_at');
     }
 
-    public function scopeEnabled(Builder $query): void
+    /**
+     * @param  Builder<ScheduledTask>  $query
+     */
+    #[\Illuminate\Database\Eloquent\Attributes\Scope]
+    protected function enabled(Builder $query): void
     {
         $query->where('is_enabled', true);
     }
@@ -67,7 +83,7 @@ class ScheduledTask extends Model
     public function nextRunAt(): ?\DateTimeInterface
     {
         try {
-            return (new \Cron\CronExpression($this->cron_expression))->getNextRunDate();
+            return new \Cron\CronExpression($this->cron_expression)->getNextRunDate();
         } catch (\Exception) {
             return null;
         }
@@ -79,8 +95,8 @@ class ScheduledTask extends Model
 
         if (! empty($this->env_vars)) {
             $pairs = array_map(
-                fn (array $pair) => escapeshellarg($pair['key']).'='.escapeshellarg($pair['value']),
-                array_filter($this->env_vars, fn ($p) => ! empty($p['key']))
+                fn (array $pair): string => escapeshellarg($pair['key']).'='.escapeshellarg($pair['value']),
+                array_filter($this->env_vars, fn (array $p): bool => ! empty($p['key']))
             );
 
             if ($pairs !== []) {
@@ -124,5 +140,19 @@ class ScheduledTask extends Model
         $this->taskRuns()
             ->whereNotIn('id', $keepIds)
             ->delete();
+    }
+
+    #[\Override]
+    protected function casts(): array
+    {
+        return [
+            'is_enabled' => 'boolean',
+            'prevent_overlap' => 'boolean',
+            'notify_on_failure' => 'boolean',
+            'runs_to_keep' => 'integer',
+            'env_vars' => 'array',
+            'last_run_at' => 'immutable_datetime',
+            'paused_until' => 'immutable_datetime',
+        ];
     }
 }

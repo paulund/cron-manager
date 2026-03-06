@@ -6,21 +6,21 @@ namespace App\Services\Scheduler;
 
 final class LinuxSchedulerInstaller implements SchedulerInstallerInterface
 {
-    private const UNIT_NAME = 'cron-manager-scheduler';
+    private const string UNIT_NAME = 'cron-manager-scheduler';
 
     private function systemdDir(): string
     {
-        return (getenv('HOME') ?: '~') . '/.config/systemd/user';
+        return (getenv('HOME') ?: '~').'/.config/systemd/user';
     }
 
     private function servicePath(): string
     {
-        return $this->systemdDir() . '/' . self::UNIT_NAME . '.service';
+        return $this->systemdDir().'/'.self::UNIT_NAME.'.service';
     }
 
     private function timerPath(): string
     {
-        return $this->systemdDir() . '/' . self::UNIT_NAME . '.timer';
+        return $this->systemdDir().'/'.self::UNIT_NAME.'.timer';
     }
 
     /**
@@ -33,7 +33,7 @@ final class LinuxSchedulerInstaller implements SchedulerInstallerInterface
     {
         $escaped = str_replace(['\\', '"'], ['\\\\', '\\"'], $path);
 
-        return '"' . $escaped . '"';
+        return '"'.$escaped.'"';
     }
 
     private function serviceContent(): string
@@ -45,7 +45,7 @@ final class LinuxSchedulerInstaller implements SchedulerInstallerInterface
         // Prepend known user binary locations so systemd's minimal PATH finds tools like claude
         $basePath = '/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin';
         $path = "{$home}/.local/bin:{$basePath}";
-        $execStart = $this->escapeExecArg($phpBinary) . ' ' . $this->escapeExecArg($artisan) . ' schedule:run';
+        $execStart = $this->escapeExecArg($phpBinary).' '.$this->escapeExecArg($artisan).' schedule:run';
 
         return "[Unit]\nDescription=Cron Manager Scheduler\n\n[Service]\nType=oneshot\nEnvironment=HOME={$home}\nEnvironment=USER={$user}\nEnvironment=LOGNAME={$user}\nEnvironment=PATH={$path}\nExecStart={$execStart}\n";
     }
@@ -67,19 +67,19 @@ final class LinuxSchedulerInstaller implements SchedulerInstallerInterface
         file_put_contents($this->timerPath(), $this->timerContent());
 
         exec('systemctl --user daemon-reload 2>&1');
-        exec('systemctl --user enable --now ' . escapeshellarg(self::UNIT_NAME . '.timer') . ' 2>&1', $output, $exitCode);
+        exec('systemctl --user enable --now '.escapeshellarg(self::UNIT_NAME.'.timer').' 2>&1', $output, $exitCode);
 
         if ($exitCode !== 0) {
-            throw new \RuntimeException('Failed to enable systemd timer: ' . implode("\n", $output));
+            throw new \RuntimeException('Failed to enable systemd timer: '.implode("\n", $output));
         }
     }
 
     public function uninstall(): void
     {
-        exec('systemctl --user disable --now ' . escapeshellarg(self::UNIT_NAME . '.timer') . ' 2>/dev/null', $output, $exitCode);
+        exec('systemctl --user disable --now '.escapeshellarg(self::UNIT_NAME.'.timer').' 2>/dev/null', $output, $exitCode);
 
         if ($exitCode !== 0) {
-            throw new \RuntimeException('Failed to disable systemd timer: ' . implode("\n", $output));
+            throw new \RuntimeException('Failed to disable systemd timer: '.implode("\n", $output));
         }
 
         foreach ([$this->servicePath(), $this->timerPath()] as $path) {
@@ -98,14 +98,14 @@ final class LinuxSchedulerInstaller implements SchedulerInstallerInterface
 
     public function isLoaded(): bool
     {
-        $output = shell_exec('systemctl --user is-active ' . escapeshellarg(self::UNIT_NAME . '.timer') . ' 2>/dev/null') ?? '';
+        $output = shell_exec('systemctl --user is-active '.escapeshellarg(self::UNIT_NAME.'.timer').' 2>/dev/null') ?: '';
 
         return trim($output) === 'active';
     }
 
     public function describe(): string
     {
-        return 'systemd user timer: ~/.config/systemd/user/' . self::UNIT_NAME . '.timer';
+        return 'systemd user timer: ~/.config/systemd/user/'.self::UNIT_NAME.'.timer';
     }
 
     public function postInstallMessage(): ?string

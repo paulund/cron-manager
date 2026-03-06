@@ -26,7 +26,7 @@ class RunTaskActionTest extends TestCase
             'is_enabled' => true,
         ]);
 
-        $run = app(RunTaskAction::class)($task);
+        $run = resolve(RunTaskAction::class)($task);
 
         $this->assertSame('success', $run->status);
         $this->assertSame(0, $run->exit_code);
@@ -46,7 +46,7 @@ class RunTaskActionTest extends TestCase
             'is_enabled' => true,
         ]);
 
-        $run = app(RunTaskAction::class)($task);
+        $run = resolve(RunTaskAction::class)($task);
 
         $this->assertSame('failed', $run->status);
         $this->assertSame(127, $run->exit_code);
@@ -65,7 +65,7 @@ class RunTaskActionTest extends TestCase
             'is_enabled' => true,
         ]);
 
-        app(RunTaskAction::class)($task);
+        resolve(RunTaskAction::class)($task);
 
         $this->assertNotNull($task->fresh()->last_run_at);
     }

@@ -16,7 +16,7 @@ class SchedulerInstallerFactoryTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->factory = new SchedulerInstallerFactory();
+        $this->factory = new SchedulerInstallerFactory;
     }
 
     public function test_returns_macos_installer_for_darwin(): void

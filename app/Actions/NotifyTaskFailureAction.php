@@ -57,7 +57,7 @@ final class NotifyTaskFailureAction
                 'task_id' => $task->id,
                 'exit_code' => $run->exit_code,
                 'output' => mb_substr($run->output ?? '', -2000),
-                'started_at' => $run->started_at?->toIso8601String(),
+                'started_at' => $run->started_at->toIso8601String(),
                 'finished_at' => $run->finished_at?->toIso8601String(),
                 'triggered_by' => $run->triggered_by,
             ]);
@@ -76,7 +76,7 @@ final class NotifyTaskFailureAction
             "Task \"{$task->name}\" failed.",
             '',
             'Exit code: '.($run->exit_code ?? 'unknown'),
-            'Started: '.($run->started_at?->format('Y-m-d H:i:s') ?? '—'),
+            'Started: '.$run->started_at->format('Y-m-d H:i:s'),
             'Finished: '.($run->finished_at?->format('Y-m-d H:i:s') ?? '—'),
             'Triggered by: '.($run->triggered_by ?? '—'),
             '',

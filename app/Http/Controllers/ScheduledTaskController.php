@@ -26,14 +26,14 @@ final class ScheduledTaskController extends Controller
             'disabled' => ScheduledTask::where('is_enabled', false)->count(),
             'failing' => ScheduledTask::whereHas(
                 'latestRun',
-                fn ($q) => $q->where('status', 'failed')
+                fn (\Illuminate\Contracts\Database\Query\Builder $q) => $q->where('status', 'failed')
             )->count(),
         ];
 
         $tasks = ScheduledTask::with(['project', 'latestRun', 'tags'])
             ->when($request->filled('project_id'), fn ($q) => $q->where('project_id', $request->integer('project_id')))
             ->when($request->get('project') === 'none', fn ($q) => $q->whereNull('project_id'))
-            ->when($request->filled('search'), fn ($q) => $q->where(function ($q) use ($request): void {
+            ->when($request->filled('search'), fn ($q) => $q->where(function (\Illuminate\Contracts\Database\Query\Builder $q) use ($request): void {
                 $q->where('name', 'like', '%'.$request->string('search').'%')
                     ->orWhere('command', 'like', '%'.$request->string('search').'%');
             }))
@@ -41,11 +41,11 @@ final class ScheduledTaskController extends Controller
             ->when($request->get('status') === 'disabled', fn ($q) => $q->where('is_enabled', false))
             ->when($request->get('status') === 'failing', fn ($q) => $q->whereHas(
                 'latestRun',
-                fn ($q) => $q->where('status', 'failed')
+                fn (\Illuminate\Contracts\Database\Query\Builder $q) => $q->where('status', 'failed')
             ))
             ->when($request->filled('tag'), fn ($q) => $q->whereHas(
                 'tags',
-                fn ($q) => $q->where('name', $request->string('tag'))
+                fn (\Illuminate\Contracts\Database\Query\Builder $q) => $q->where('name', $request->string('tag'))
             ))
             ->latest()
             ->paginate(20);
@@ -57,10 +57,7 @@ final class ScheduledTaskController extends Controller
         $tagFilter = $request->string('tag')->toString();
         $allTags = Tag::orderBy('name')->get();
 
-        return view('tasks.index', compact(
-            'tasks', 'projects', 'uncategorisedCount',
-            'activeProjectId', 'activeFilter', 'stats', 'search', 'statusFilter', 'tagFilter', 'allTags'
-        ));
+        return view('tasks.index', ['tasks' => $tasks, 'projects' => $projects, 'uncategorisedCount' => $uncategorisedCount, 'activeProjectId' => $activeProjectId, 'activeFilter' => $activeFilter, 'stats' => $stats, 'search' => $search, 'statusFilter' => $statusFilter, 'tagFilter' => $tagFilter, 'allTags' => $allTags]);
     }
 
     public function create(): View
@@ -69,7 +66,7 @@ final class ScheduledTaskController extends Controller
         $allTasks = ScheduledTask::orderBy('name')->get();
         $allTags = Tag::orderBy('name')->get();
 
-        return view('tasks.create', compact('projects', 'allTasks', 'allTags'));
+        return view('tasks.create', ['projects' => $projects, 'allTasks' => $allTasks, 'allTags' => $allTags]);
     }
 
     public function store(StoreScheduledTaskRequest $request): RedirectResponse
@@ -87,7 +84,7 @@ final class ScheduledTaskController extends Controller
 
         $this->syncTags($task, $tagNames);
 
-        return redirect()->route('tasks.index')->with('success', 'Task created.');
+        return to_route('tasks.index')->with('success', 'Task created.');
     }
 
     public function show(ScheduledTask $task): View
@@ -95,7 +92,7 @@ final class ScheduledTaskController extends Controller
         $task->load(['project', 'tags', 'dependsOn']);
         $runs = $task->taskRuns()->latest('started_at')->paginate(20);
 
-        return view('tasks.show', compact('task', 'runs'));
+        return view('tasks.show', ['task' => $task, 'runs' => $runs]);
     }
 
     public function edit(ScheduledTask $task): View
@@ -104,7 +101,7 @@ final class ScheduledTaskController extends Controller
         $allTasks = ScheduledTask::where('id', '!=', $task->id)->orderBy('name')->get();
         $allTags = Tag::orderBy('name')->get();
 
-        return view('tasks.edit', compact('task', 'projects', 'allTasks', 'allTags'));
+        return view('tasks.edit', ['task' => $task, 'projects' => $projects, 'allTasks' => $allTasks, 'allTags' => $allTags]);
     }
 
     public function update(UpdateScheduledTaskRequest $request, ScheduledTask $task): RedirectResponse
@@ -122,7 +119,7 @@ final class ScheduledTaskController extends Controller
 
         $this->syncTags($task, $tagNames);
 
-        return redirect()->route('tasks.index')->with('success', 'Task updated.');
+        return to_route('tasks.index')->with('success', 'Task updated.');
     }
 
     /** @param string[] $tagNames */
@@ -142,6 +139,6 @@ final class ScheduledTaskController extends Controller
     {
         $task->delete();
 
-        return redirect()->route('tasks.index')->with('success', 'Task deleted.');
+        return to_route('tasks.index')->with('success', 'Task deleted.');
     }
 }

@@ -13,12 +13,12 @@ final class TaskRunNowController extends Controller
     public function __invoke(ScheduledTask $task, RunTaskAction $action): RedirectResponse
     {
         if ($task->isPaused()) {
-            return redirect()->route('tasks.show', $task)
-                ->with('error', 'Task is snoozed until '.$task->paused_until->format('D d M Y H:i').'. Edit the task to clear the snooze.');
+            return to_route('tasks.show', $task)
+                ->with('error', 'Task is snoozed until '.($task->paused_until?->format('D d M Y H:i') ?? '—').'. Edit the task to clear the snooze.');
         }
 
         if ($task->prevent_overlap && $task->taskRuns()->where('status', 'running')->exists()) {
-            return redirect()->route('tasks.show', $task)
+            return to_route('tasks.show', $task)
                 ->with('error', 'Task is already running. Overlap prevention is enabled.');
         }
 
@@ -30,6 +30,6 @@ final class TaskRunNowController extends Controller
 
         $flashKey = $run->status === 'success' ? 'success' : 'error';
 
-        return redirect()->route('tasks.show', $task)->with($flashKey, $message);
+        return to_route('tasks.show', $task)->with($flashKey, $message);
     }
 }

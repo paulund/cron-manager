@@ -15,6 +15,6 @@ final class TaskToggleController extends Controller
 
         $state = $task->is_enabled ? 'enabled' : 'disabled';
 
-        return redirect()->back()->with('success', "Task {$state}.");
+        return back()->with('success', "Task {$state}.");
     }
 }

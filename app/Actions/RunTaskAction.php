@@ -8,10 +8,10 @@ use App\Models\ScheduledTask;
 use App\Models\TaskRun;
 use Illuminate\Support\Facades\Process;
 
-final class RunTaskAction
+final readonly class RunTaskAction
 {
     public function __construct(
-        private readonly NotifyTaskFailureAction $notifier,
+        private NotifyTaskFailureAction $notifier,
     ) {}
 
     public function __invoke(ScheduledTask $task): TaskRun
@@ -25,15 +25,15 @@ final class RunTaskAction
 
         $extraPath = getenv('EXTRA_PATH') ?: '';
         $currentPath = getenv('PATH') ?: '/usr/local/bin:/usr/bin:/bin';
-        $path = $extraPath ? $extraPath.':'.$currentPath : $currentPath;
+        $path = $extraPath !== '' && $extraPath !== '0' ? $extraPath.':'.$currentPath : $currentPath;
 
-        $shell = getenv('SHELL') ?: ($_SERVER['SHELL'] ?? '');
+        $shell = getenv('SHELL') ?: (\Illuminate\Support\Facades\Request::server('SHELL') ?? '');
 
         $env = [
-            'PATH'    => $path,
-            'HOME'    => getenv('HOME') ?: ($_SERVER['HOME'] ?? ''),
-            'USER'    => getenv('USER') ?: ($_SERVER['USER'] ?? ''),
-            'LOGNAME' => getenv('LOGNAME') ?: ($_SERVER['LOGNAME'] ?? ''),
+            'PATH' => $path,
+            'HOME' => getenv('HOME') ?: (\Illuminate\Support\Facades\Request::server('HOME') ?? ''),
+            'USER' => getenv('USER') ?: (\Illuminate\Support\Facades\Request::server('USER') ?? ''),
+            'LOGNAME' => getenv('LOGNAME') ?: (\Illuminate\Support\Facades\Request::server('LOGNAME') ?? ''),
         ];
 
         if ($shell !== '') {
@@ -54,7 +54,7 @@ final class RunTaskAction
 
         $task->update(['last_run_at' => now()]);
 
-        $run = $run->fresh();
+        $run = $run->fresh() ?? $run;
 
         if ($run->status === 'failed') {
             ($this->notifier)($task, $run);

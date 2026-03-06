@@ -6,16 +6,21 @@ namespace App\Services\Scheduler;
 
 final class MacOsSchedulerInstaller implements SchedulerInstallerInterface
 {
-    private const LABEL = 'com.cron-manager.scheduler';
+    private const string LABEL = 'com.cron-manager.scheduler';
 
     private function plistPath(): string
     {
-        $home = getenv('HOME') ?: ($_SERVER['HOME'] ?? null);
+        $home = getenv('HOME');
+        if ($home === false || $home === '') {
+            $serverHome = \Illuminate\Support\Facades\Request::server('HOME');
+            $home = is_string($serverHome) ? $serverHome : '';
+        }
 
-        if ($home === null || $home === '') {
+        if ($home === '') {
             throw new \RuntimeException('Cannot determine the current user home directory for launchd plist path.');
         }
-        return $home . '/Library/LaunchAgents/' . self::LABEL . '.plist';
+
+        return $home.'/Library/LaunchAgents/'.self::LABEL.'.plist';
     }
 
     private function plistContent(): string
@@ -24,8 +29,17 @@ final class MacOsSchedulerInstaller implements SchedulerInstallerInterface
         $phpBinary = PHP_BINARY;
         $artisan = base_path('artisan');
         $logPath = storage_path('logs/scheduler.log');
-        $home = getenv('HOME') ?: ($_SERVER['HOME'] ?? '/tmp');
-        $user = getenv('USER') ?: ($_SERVER['USER'] ?? '');
+        $home = getenv('HOME');
+        if ($home === false || $home === '') {
+            $serverHome = \Illuminate\Support\Facades\Request::server('HOME');
+            $home = is_string($serverHome) ? $serverHome : '/tmp';
+        }
+
+        $user = getenv('USER');
+        if ($user === false || $user === '') {
+            $serverUser = \Illuminate\Support\Facades\Request::server('USER');
+            $user = is_string($serverUser) ? $serverUser : '';
+        }
         // Prepend known user binary locations so launchd's minimal PATH finds tools like claude
         $basePath = '/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin';
         $path = "{$home}/.local/bin:/opt/homebrew/bin:{$basePath}";
@@ -100,13 +114,13 @@ XML;
         $uid = trim(shell_exec('id -u') ?: '');
 
         if ($uid !== '') {
-            $output = shell_exec("launchctl print gui/{$uid}/" . self::LABEL . ' 2>/dev/null') ?? '';
+            $output = shell_exec("launchctl print gui/{$uid}/".self::LABEL.' 2>/dev/null') ?: '';
 
             return str_contains($output, 'state =');
         }
 
         // Fallback for environments where id -u is unavailable
-        $output = shell_exec('launchctl list ' . self::LABEL . ' 2>/dev/null') ?? '';
+        $output = shell_exec('launchctl list '.self::LABEL.' 2>/dev/null') ?: '';
 
         return str_contains($output, self::LABEL);
     }
@@ -116,7 +130,7 @@ XML;
         $uid = trim(shell_exec('id -u') ?: '');
 
         if ($uid !== '') {
-            exec("launchctl bootstrap gui/{$uid} " . escapeshellarg($plistPath) . ' 2>&1', $output, $exitCode);
+            exec("launchctl bootstrap gui/{$uid} ".escapeshellarg($plistPath).' 2>&1', $output, $exitCode);
 
             if ($exitCode === 0) {
                 return;
@@ -124,7 +138,7 @@ XML;
         }
 
         // Fallback to legacy command
-        shell_exec('launchctl load ' . escapeshellarg($plistPath) . ' 2>&1');
+        shell_exec('launchctl load '.escapeshellarg($plistPath).' 2>&1');
     }
 
     private function launchctlUnload(string $plistPath): void
@@ -132,7 +146,7 @@ XML;
         $uid = trim(shell_exec('id -u') ?: '');
 
         if ($uid !== '') {
-            exec("launchctl bootout gui/{$uid}/" . self::LABEL . ' 2>&1', $output, $exitCode);
+            exec("launchctl bootout gui/{$uid}/".self::LABEL.' 2>&1', $output, $exitCode);
 
             if ($exitCode === 0) {
                 return;
@@ -140,15 +154,15 @@ XML;
         }
 
         // Fallback to legacy command
-        shell_exec('launchctl unload ' . escapeshellarg($plistPath) . ' 2>&1');
+        shell_exec('launchctl unload '.escapeshellarg($plistPath).' 2>&1');
     }
 
     public function describe(): string
     {
-        return 'LaunchAgent at ~/Library/LaunchAgents/' . self::LABEL . '.plist';
+        return 'LaunchAgent at ~/Library/LaunchAgents/'.self::LABEL.'.plist';
     }
 
-    public function postInstallMessage(): ?string
+    public function postInstallMessage(): string
     {
         return "The scheduler will run every minute while you are logged in.\nYou can remove your existing crontab entry if you added one manually.";
     }

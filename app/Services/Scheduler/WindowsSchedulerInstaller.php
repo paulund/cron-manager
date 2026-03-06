@@ -6,9 +6,9 @@ namespace App\Services\Scheduler;
 
 final class WindowsSchedulerInstaller implements SchedulerInstallerInterface
 {
-    private const TASK_NAME = 'CronManagerScheduler';
+    private const string TASK_NAME = 'CronManagerScheduler';
 
-    private const TASK_FOLDER = '\CronManager';
+    private const string TASK_FOLDER = '\CronManager';
 
     private function taskXml(?string $phpBinaryPath = null, ?string $artisanPath = null): string
     {
@@ -61,12 +61,12 @@ final class WindowsSchedulerInstaller implements SchedulerInstallerInterface
 
     private function xmlPath(): string
     {
-        return sys_get_temp_dir() . DIRECTORY_SEPARATOR . self::TASK_NAME . '.xml';
+        return sys_get_temp_dir().DIRECTORY_SEPARATOR.self::TASK_NAME.'.xml';
     }
 
     private function fullTaskName(): string
     {
-        return self::TASK_FOLDER . '\\' . self::TASK_NAME;
+        return self::TASK_FOLDER.'\\'.self::TASK_NAME;
     }
 
     public function install(): void
@@ -74,27 +74,27 @@ final class WindowsSchedulerInstaller implements SchedulerInstallerInterface
         $xmlPath = $this->xmlPath();
         file_put_contents($xmlPath, $this->taskXml());
 
-        exec('schtasks /create /xml ' . escapeshellarg($xmlPath) . ' /tn ' . escapeshellarg($this->fullTaskName()) . ' /f 2>&1', $output, $exitCode);
+        exec('schtasks /create /xml '.escapeshellarg($xmlPath).' /tn '.escapeshellarg($this->fullTaskName()).' /f 2>&1', $output, $exitCode);
 
         unlink($xmlPath);
 
         if ($exitCode !== 0) {
-            throw new \RuntimeException('schtasks /create failed: ' . implode("\n", $output));
+            throw new \RuntimeException('schtasks /create failed: '.implode("\n", $output));
         }
     }
 
     public function uninstall(): void
     {
-        exec('schtasks /delete /tn ' . escapeshellarg($this->fullTaskName()) . ' /f 2>&1', $output, $exitCode);
+        exec('schtasks /delete /tn '.escapeshellarg($this->fullTaskName()).' /f 2>&1', $output, $exitCode);
 
         if ($exitCode !== 0) {
-            throw new \RuntimeException('schtasks /delete failed: ' . implode("\n", $output));
+            throw new \RuntimeException('schtasks /delete failed: '.implode("\n", $output));
         }
     }
 
     public function isInstalled(): bool
     {
-        $output = shell_exec('schtasks /query /tn ' . escapeshellarg($this->fullTaskName()) . ' 2>&1') ?? '';
+        $output = shell_exec('schtasks /query /tn '.escapeshellarg($this->fullTaskName()).' 2>&1') ?: '';
 
         return str_contains($output, self::TASK_NAME);
     }
@@ -106,7 +106,7 @@ final class WindowsSchedulerInstaller implements SchedulerInstallerInterface
 
     public function describe(): string
     {
-        return 'Windows Task Scheduler task: ' . $this->fullTaskName();
+        return 'Windows Task Scheduler task: '.$this->fullTaskName();
     }
 
     public function postInstallMessage(): ?string
