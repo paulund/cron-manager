@@ -8,9 +8,25 @@ final class MacOsSchedulerInstaller implements SchedulerInstallerInterface
 {
     private const LABEL = 'com.cron-manager.scheduler';
 
+    private function homeDirectory(): string
+    {
+        $home = getenv('HOME') ?: ($_SERVER['HOME'] ?? null);
+
+        if ($home === null && function_exists('posix_getpwuid') && function_exists('posix_geteuid')) {
+            $info = posix_getpwuid(posix_geteuid());
+            $home = $info['dir'] ?? null;
+        }
+
+        if ($home === null) {
+            throw new \RuntimeException('Unable to determine home directory: HOME environment variable is not set.');
+        }
+
+        return $home;
+    }
+
     private function plistPath(): string
     {
-        $home = getenv('HOME') ?: ($_SERVER['HOME'] ?? '~');
+        $home = $this->homeDirectory();
 
         return $home . '/Library/LaunchAgents/' . self::LABEL . '.plist';
     }
@@ -20,7 +36,7 @@ final class MacOsSchedulerInstaller implements SchedulerInstallerInterface
         $phpBinary = PHP_BINARY;
         $artisan = base_path('artisan');
         $logPath = storage_path('logs/scheduler.log');
-        $home = getenv('HOME') ?: ($_SERVER['HOME'] ?? '/tmp');
+        $home = $this->homeDirectory();
         $user = getenv('USER') ?: ($_SERVER['USER'] ?? '');
         // Prepend known user binary locations so launchd's minimal PATH finds tools like claude
         $basePath = '/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin';
