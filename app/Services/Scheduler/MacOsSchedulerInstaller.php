@@ -20,6 +20,7 @@ final class MacOsSchedulerInstaller implements SchedulerInstallerInterface
 
     private function plistContent(): string
     {
+        $label = self::LABEL;
         $phpBinary = PHP_BINARY;
         $artisan = base_path('artisan');
         $logPath = storage_path('logs/scheduler.log');
@@ -35,7 +36,7 @@ final class MacOsSchedulerInstaller implements SchedulerInstallerInterface
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>{self::LABEL}</string>
+    <string>{$label}</string>
     <key>ProgramArguments</key>
     <array>
         <string>{$phpBinary}</string>
