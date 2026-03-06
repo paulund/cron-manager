@@ -52,12 +52,12 @@ The **Scheduler Health** page (`/health`) shows whether the trigger is installed
 
 If you previously added a crontab entry by hand, remove it after installing the LaunchAgent — otherwise `schedule:run` fires twice per minute. The health page will warn you if both are active.
 
-### Linux: PATH issue
+### Linux: systemd lingering
 
-Cron runs with a minimal environment and does not inherit your shell's PATH. If a task fails with `sh: <command>: command not found`, add a `PATH` line at the top of your crontab (`crontab -e`):
+The installer creates a **systemd user timer** that fires every minute. On headless servers or non-login sessions, you may need to enable lingering so the timer persists after logout:
 
-```
-PATH=/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin
+```bash
+loginctl enable-linger $USER
 ```
 
 ## Running locally

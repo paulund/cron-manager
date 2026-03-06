@@ -37,12 +37,13 @@ final class HealthController extends Controller
         $installer = $this->factory->make();
         $schedulerInstalled = $installer->isInstalled();
         $schedulerLoaded = $schedulerInstalled && $installer->isLoaded();
+        $installerDescription = $installer->describe();
         $installCommand = 'php artisan scheduler:install';
 
         return view('health.index', compact(
             'status', 'lastSeen', 'ageSeconds',
             'cronInstalled', 'cronEntry',
-            'schedulerInstalled', 'schedulerLoaded', 'installCommand',
+            'schedulerInstalled', 'schedulerLoaded', 'installerDescription', 'installCommand',
         ));
     }
 }
