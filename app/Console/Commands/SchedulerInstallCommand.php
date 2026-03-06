@@ -38,9 +38,10 @@ final class SchedulerInstallCommand extends Command
 
         $this->info('Scheduler installed successfully.');
 
-        if (PHP_OS_FAMILY === 'Darwin') {
-            $this->line('  The scheduler will run every minute while you are logged in.');
-            $this->line('  You can remove your existing crontab entry if you added one manually.');
+        if ($message = $installer->postInstallMessage()) {
+            foreach (explode("\n", $message) as $line) {
+                $this->line('  ' . $line);
+            }
         }
 
         return self::SUCCESS;

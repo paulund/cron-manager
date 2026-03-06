@@ -23,7 +23,7 @@ final class RunTaskAction
             'triggered_by' => 'manual',
         ]);
 
-        $extraPath = env('EXTRA_PATH', '');
+        $extraPath = getenv('EXTRA_PATH') ?: '';
         $currentPath = getenv('PATH') ?: '/usr/local/bin:/usr/bin:/bin';
         $path = $extraPath ? $extraPath.':'.$currentPath : $currentPath;
 

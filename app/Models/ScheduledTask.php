@@ -97,7 +97,9 @@ class ScheduledTask extends Model
         // Wrap claude commands in a login shell so the subprocess inherits the
         // user's full environment (PATH, HOME, credentials) without needing an API key.
         if ($this->command_type === 'claude') {
-            return '/bin/zsh -l -c '.escapeshellarg($command);
+            $shell = getenv('SHELL') ?: '/bin/sh';
+
+            return $shell.' -l -c '.escapeshellarg($command);
         }
 
         return $command;

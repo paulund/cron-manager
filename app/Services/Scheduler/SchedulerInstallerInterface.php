@@ -15,4 +15,6 @@ interface SchedulerInstallerInterface
     public function isLoaded(): bool;
 
     public function describe(): string;
+
+    public function postInstallMessage(): ?string;
 }

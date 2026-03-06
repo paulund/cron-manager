@@ -10,7 +10,7 @@ final class LinuxSchedulerInstaller implements SchedulerInstallerInterface
 
     private function systemdDir(): string
     {
-        return ($_SERVER['HOME'] ?? '~') . '/.config/systemd/user';
+        return (getenv('HOME') ?: '~') . '/.config/systemd/user';
     }
 
     private function servicePath(): string
@@ -27,8 +27,8 @@ final class LinuxSchedulerInstaller implements SchedulerInstallerInterface
     {
         $phpBinary = PHP_BINARY;
         $artisan = base_path('artisan');
-        $home = $_SERVER['HOME'] ?? '/tmp';
-        $user = $_SERVER['USER'] ?? '';
+        $home = getenv('HOME') ?: '/tmp';
+        $user = getenv('USER') ?: '';
         // Prepend known user binary locations so systemd's minimal PATH finds tools like claude
         $basePath = '/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin';
         $path = "{$home}/.local/bin:{$basePath}";
@@ -52,13 +52,21 @@ final class LinuxSchedulerInstaller implements SchedulerInstallerInterface
         file_put_contents($this->servicePath(), $this->serviceContent());
         file_put_contents($this->timerPath(), $this->timerContent());
 
-        shell_exec('systemctl --user daemon-reload 2>&1');
-        shell_exec('systemctl --user enable --now ' . escapeshellarg(self::UNIT_NAME . '.timer') . ' 2>&1');
+        exec('systemctl --user daemon-reload 2>&1');
+        exec('systemctl --user enable --now ' . escapeshellarg(self::UNIT_NAME . '.timer') . ' 2>&1', $output, $exitCode);
+
+        if ($exitCode !== 0) {
+            throw new \RuntimeException('Failed to enable systemd timer: ' . implode("\n", $output));
+        }
     }
 
     public function uninstall(): void
     {
-        shell_exec('systemctl --user disable --now ' . escapeshellarg(self::UNIT_NAME . '.timer') . ' 2>/dev/null');
+        exec('systemctl --user disable --now ' . escapeshellarg(self::UNIT_NAME . '.timer') . ' 2>/dev/null', $output, $exitCode);
+
+        if ($exitCode !== 0) {
+            throw new \RuntimeException('Failed to disable systemd timer: ' . implode("\n", $output));
+        }
 
         foreach ([$this->servicePath(), $this->timerPath()] as $path) {
             if (file_exists($path)) {
@@ -66,7 +74,7 @@ final class LinuxSchedulerInstaller implements SchedulerInstallerInterface
             }
         }
 
-        shell_exec('systemctl --user daemon-reload 2>&1');
+        exec('systemctl --user daemon-reload 2>&1');
     }
 
     public function isInstalled(): bool
@@ -84,5 +92,10 @@ final class LinuxSchedulerInstaller implements SchedulerInstallerInterface
     public function describe(): string
     {
         return 'systemd user timer: ~/.config/systemd/user/' . self::UNIT_NAME . '.timer';
+    }
+
+    public function postInstallMessage(): ?string
+    {
+        return null;
     }
 }

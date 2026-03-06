@@ -71,14 +71,22 @@ final class WindowsSchedulerInstaller implements SchedulerInstallerInterface
         $xmlPath = $this->xmlPath();
         file_put_contents($xmlPath, $this->taskXml());
 
-        shell_exec('schtasks /create /xml ' . escapeshellarg($xmlPath) . ' /tn ' . escapeshellarg($this->fullTaskName()) . ' /f 2>&1');
+        exec('schtasks /create /xml ' . escapeshellarg($xmlPath) . ' /tn ' . escapeshellarg($this->fullTaskName()) . ' /f 2>&1', $output, $exitCode);
 
         unlink($xmlPath);
+
+        if ($exitCode !== 0) {
+            throw new \RuntimeException('schtasks /create failed: ' . implode("\n", $output));
+        }
     }
 
     public function uninstall(): void
     {
-        shell_exec('schtasks /delete /tn ' . escapeshellarg($this->fullTaskName()) . ' /f 2>&1');
+        exec('schtasks /delete /tn ' . escapeshellarg($this->fullTaskName()) . ' /f 2>&1', $output, $exitCode);
+
+        if ($exitCode !== 0) {
+            throw new \RuntimeException('schtasks /delete failed: ' . implode("\n", $output));
+        }
     }
 
     public function isInstalled(): bool
@@ -96,5 +104,10 @@ final class WindowsSchedulerInstaller implements SchedulerInstallerInterface
     public function describe(): string
     {
         return 'Windows Task Scheduler task: ' . $this->fullTaskName();
+    }
+
+    public function postInstallMessage(): ?string
+    {
+        return null;
     }
 }

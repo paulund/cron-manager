@@ -112,9 +112,9 @@ XML;
         $uid = trim(shell_exec('id -u') ?: '');
 
         if ($uid !== '') {
-            $result = shell_exec("launchctl bootstrap gui/{$uid} " . escapeshellarg($plistPath) . ' 2>&1') ?? '';
+            exec("launchctl bootstrap gui/{$uid} " . escapeshellarg($plistPath) . ' 2>&1', $output, $exitCode);
 
-            if (! str_contains($result, 'error')) {
+            if ($exitCode === 0) {
                 return;
             }
         }
@@ -128,9 +128,9 @@ XML;
         $uid = trim(shell_exec('id -u') ?: '');
 
         if ($uid !== '') {
-            $result = shell_exec("launchctl bootout gui/{$uid}/" . self::LABEL . ' 2>&1') ?? '';
+            exec("launchctl bootout gui/{$uid}/" . self::LABEL . ' 2>&1', $output, $exitCode);
 
-            if (! str_contains($result, 'error')) {
+            if ($exitCode === 0) {
                 return;
             }
         }
@@ -142,5 +142,10 @@ XML;
     public function describe(): string
     {
         return 'LaunchAgent at ~/Library/LaunchAgents/' . self::LABEL . '.plist';
+    }
+
+    public function postInstallMessage(): ?string
+    {
+        return "The scheduler will run every minute while you are logged in.\nYou can remove your existing crontab entry if you added one manually.";
     }
 }
