@@ -27,14 +27,21 @@ final class RunTaskAction
         $currentPath = getenv('PATH') ?: '/usr/local/bin:/usr/bin:/bin';
         $path = $extraPath ? $extraPath.':'.$currentPath : $currentPath;
 
+        $shell = getenv('SHELL') ?: ($_SERVER['SHELL'] ?? '');
+
+        $env = [
+            'PATH'    => $path,
+            'HOME'    => getenv('HOME') ?: ($_SERVER['HOME'] ?? ''),
+            'USER'    => getenv('USER') ?: ($_SERVER['USER'] ?? ''),
+            'LOGNAME' => getenv('LOGNAME') ?: ($_SERVER['LOGNAME'] ?? ''),
+        ];
+
+        if ($shell !== '') {
+            $env['SHELL'] = $shell;
+        }
+
         $result = Process::path($task->working_directory ?? base_path())
-            ->env([
-                'PATH'    => $path,
-                'HOME'    => getenv('HOME') ?: ($_SERVER['HOME'] ?? ''),
-                'USER'    => getenv('USER') ?: ($_SERVER['USER'] ?? ''),
-                'LOGNAME' => getenv('LOGNAME') ?: ($_SERVER['LOGNAME'] ?? ''),
-                'SHELL'   => getenv('SHELL') ?: ($_SERVER['SHELL'] ?? '/bin/zsh'),
-            ])
+            ->env($env)
             ->timeout(300)
             ->run($task->command);
 
