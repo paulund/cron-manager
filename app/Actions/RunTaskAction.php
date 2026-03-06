@@ -43,7 +43,7 @@ final class RunTaskAction
         $result = Process::path($task->working_directory ?? base_path())
             ->env($env)
             ->timeout(300)
-            ->run($task->command);
+            ->run($task->buildCommand());
 
         $run->update([
             'finished_at' => now(),
