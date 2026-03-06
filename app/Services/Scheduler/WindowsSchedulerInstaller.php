@@ -10,10 +10,13 @@ final class WindowsSchedulerInstaller implements SchedulerInstallerInterface
 
     private const TASK_FOLDER = '\CronManager';
 
-    private function taskXml(): string
+    private function taskXml(?string $phpBinaryPath = null, ?string $artisanPath = null): string
     {
-        $phpBinary = PHP_BINARY;
-        $artisan = base_path('artisan');
+        $phpBinaryPath ??= PHP_BINARY;
+        $artisanPath ??= base_path('artisan');
+
+        $phpBinary = htmlspecialchars($phpBinaryPath, ENT_XML1 | ENT_QUOTES, 'UTF-8');
+        $artisan = htmlspecialchars($artisanPath, ENT_XML1 | ENT_QUOTES, 'UTF-8');
 
         return <<<XML
         <?xml version="1.0" encoding="UTF-8"?>
@@ -49,7 +52,7 @@ final class WindowsSchedulerInstaller implements SchedulerInstallerInterface
           <Actions>
             <Exec>
               <Command>{$phpBinary}</Command>
-              <Arguments>{$artisan} schedule:run</Arguments>
+              <Arguments>&quot;{$artisan}&quot; schedule:run</Arguments>
             </Exec>
           </Actions>
         </Task>

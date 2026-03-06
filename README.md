@@ -37,7 +37,7 @@ php artisan scheduler:install
 | Platform | Method | Notes |
 |---|---|---|
 | **macOS** | LaunchAgent (`~/Library/LaunchAgents/`) | Runs in your login session with full Keychain access. Required for tools like `claude` that store credentials in the Keychain. |
-| **Linux** | systemd user timer (`~/.config/systemd/user/`) | Installed via `systemctl --user enable --now`. Requires systemd with lingering enabled for headless servers. |
+| **Linux** | systemd user timer (`~/.config/systemd/user/`) | Runs as your user via systemd and is managed with `systemctl --user`. |
 | **Windows** | Windows Task Scheduler | Created via `schtasks`. |
 
 To remove the trigger:
