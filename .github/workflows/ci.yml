@@ -22,8 +22,8 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: pdo, pdo_sqlite, sqlite3
-          coverage: none
+          extensions: pdo, pdo_sqlite, sqlite3, pcov
+          coverage: pcov
 
       - name: Install Composer dependencies
         run: composer install --prefer-dist --no-interaction --no-progress
@@ -35,24 +35,14 @@ jobs:
           touch database/database.sqlite
           php artisan migrate --force
 
-      - name: Run tests
-        run: composer test
+      - name: Lint (Pint)
+        run: composer lint
 
-  style:
-    name: Code Style
-    runs-on: ubuntu-latest
+      - name: Static analysis (Rector dry-run)
+        run: composer rector
 
-    steps:
-      - uses: actions/checkout@v4
+      - name: Static analysis (PHPStan)
+        run: composer types
 
-      - name: Set up PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.4'
-          coverage: none
-
-      - name: Install Composer dependencies
-        run: composer install --prefer-dist --no-interaction --no-progress
-
-      - name: Check code style
-        run: ./vendor/bin/pint --test
+      - name: Run tests with coverage
+        run: composer test:coverage
