@@ -73,12 +73,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
         </svg>
         <div>
-            <span class="text-sm text-emerald-700 font-medium">
-                @if(PHP_OS_FAMILY === 'Darwin') LaunchAgent installed
-                @elseif(PHP_OS_FAMILY === 'Windows') Task Scheduler task installed
-                @else Crontab entry installed via scheduler:install
-                @endif
-            </span>
+            <span class="text-sm text-emerald-700 font-medium">{{ $installerDescription }} installed</span>
             @if(PHP_OS_FAMILY === 'Darwin')
             <p class="text-xs text-stone-400 mt-0.5">
                 {{ $schedulerLoaded ? 'Loaded and running in your login session — Keychain access available.' : 'Installed but not currently loaded.' }}
@@ -90,12 +85,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
         </svg>
         <div>
-            <span class="text-sm text-stone-500">
-                @if(PHP_OS_FAMILY === 'Darwin') No LaunchAgent installed
-                @elseif(PHP_OS_FAMILY === 'Windows') No Task Scheduler task installed
-                @else Scheduler not installed via scheduler:install
-                @endif
-            </span>
+            <span class="text-sm text-stone-500">{{ $installerDescription }} not installed</span>
             <p class="text-xs text-stone-400 mt-0.5">Run <code class="font-mono bg-stone-100 px-1 rounded">{{ $installCommand }}</code> to install.</p>
         </div>
         @endif
