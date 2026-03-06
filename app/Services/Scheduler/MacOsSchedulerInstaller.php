@@ -10,8 +10,11 @@ final class MacOsSchedulerInstaller implements SchedulerInstallerInterface
 
     private function plistPath(): string
     {
-        $home = getenv('HOME') ?: ($_SERVER['HOME'] ?? '~');
+        $home = getenv('HOME') ?: ($_SERVER['HOME'] ?? null);
 
+        if ($home === null || $home === '') {
+            throw new \RuntimeException('Cannot determine the current user home directory for launchd plist path.');
+        }
         return $home . '/Library/LaunchAgents/' . self::LABEL . '.plist';
     }
 
