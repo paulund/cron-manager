@@ -15,7 +15,8 @@ final class MacOsSchedulerInstaller implements SchedulerInstallerInterface
         if ($home === null || $home === '') {
             throw new \RuntimeException('Cannot determine the current user home directory for launchd plist path.');
         }
-        return $home . '/Library/LaunchAgents/' . self::LABEL . '.plist';
+
+        return $home.'/Library/LaunchAgents/'.self::LABEL.'.plist';
     }
 
     private function plistContent(): string
@@ -100,13 +101,13 @@ XML;
         $uid = trim(shell_exec('id -u') ?: '');
 
         if ($uid !== '') {
-            $output = shell_exec("launchctl print gui/{$uid}/" . self::LABEL . ' 2>/dev/null') ?? '';
+            $output = shell_exec("launchctl print gui/{$uid}/".self::LABEL.' 2>/dev/null') ?? '';
 
             return str_contains($output, 'state =');
         }
 
         // Fallback for environments where id -u is unavailable
-        $output = shell_exec('launchctl list ' . self::LABEL . ' 2>/dev/null') ?? '';
+        $output = shell_exec('launchctl list '.self::LABEL.' 2>/dev/null') ?? '';
 
         return str_contains($output, self::LABEL);
     }
@@ -116,7 +117,7 @@ XML;
         $uid = trim(shell_exec('id -u') ?: '');
 
         if ($uid !== '') {
-            exec("launchctl bootstrap gui/{$uid} " . escapeshellarg($plistPath) . ' 2>&1', $output, $exitCode);
+            exec("launchctl bootstrap gui/{$uid} ".escapeshellarg($plistPath).' 2>&1', $output, $exitCode);
 
             if ($exitCode === 0) {
                 return;
@@ -124,7 +125,7 @@ XML;
         }
 
         // Fallback to legacy command
-        shell_exec('launchctl load ' . escapeshellarg($plistPath) . ' 2>&1');
+        shell_exec('launchctl load '.escapeshellarg($plistPath).' 2>&1');
     }
 
     private function launchctlUnload(string $plistPath): void
@@ -132,7 +133,7 @@ XML;
         $uid = trim(shell_exec('id -u') ?: '');
 
         if ($uid !== '') {
-            exec("launchctl bootout gui/{$uid}/" . self::LABEL . ' 2>&1', $output, $exitCode);
+            exec("launchctl bootout gui/{$uid}/".self::LABEL.' 2>&1', $output, $exitCode);
 
             if ($exitCode === 0) {
                 return;
@@ -140,12 +141,12 @@ XML;
         }
 
         // Fallback to legacy command
-        shell_exec('launchctl unload ' . escapeshellarg($plistPath) . ' 2>&1');
+        shell_exec('launchctl unload '.escapeshellarg($plistPath).' 2>&1');
     }
 
     public function describe(): string
     {
-        return 'LaunchAgent at ~/Library/LaunchAgents/' . self::LABEL . '.plist';
+        return 'LaunchAgent at ~/Library/LaunchAgents/'.self::LABEL.'.plist';
     }
 
     public function postInstallMessage(): ?string

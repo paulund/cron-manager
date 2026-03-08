@@ -11,7 +11,7 @@ class LinuxSchedulerInstallerTest extends TestCase
 {
     public function test_describe_contains_systemd_unit_name(): void
     {
-        $installer = new LinuxSchedulerInstaller();
+        $installer = new LinuxSchedulerInstaller;
 
         $description = $installer->describe();
 
@@ -21,21 +21,21 @@ class LinuxSchedulerInstallerTest extends TestCase
 
     public function test_is_installed_returns_bool(): void
     {
-        $installer = new LinuxSchedulerInstaller();
+        $installer = new LinuxSchedulerInstaller;
 
         $this->assertIsBool($installer->isInstalled());
     }
 
     public function test_is_loaded_returns_bool(): void
     {
-        $installer = new LinuxSchedulerInstaller();
+        $installer = new LinuxSchedulerInstaller;
 
         $this->assertIsBool($installer->isLoaded());
     }
 
     public function test_exec_start_paths_are_double_quoted(): void
     {
-        $installer = new LinuxSchedulerInstaller();
+        $installer = new LinuxSchedulerInstaller;
 
         $content = $this->getServiceContent($installer);
 
@@ -49,7 +49,7 @@ class LinuxSchedulerInstallerTest extends TestCase
 
     public function test_exec_start_escapes_backslashes_and_quotes_in_paths(): void
     {
-        $installer = new LinuxSchedulerInstaller();
+        $installer = new LinuxSchedulerInstaller;
 
         $method = new \ReflectionMethod($installer, 'escapeExecArg');
         $method->setAccessible(true);

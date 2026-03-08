@@ -24,8 +24,8 @@ final class SchedulerInstallCommand extends Command
     {
         $installer = $this->factory->make();
 
-        $this->line('Detected platform: <info>' . PHP_OS_FAMILY . '</info>');
-        $this->line('Will install: <info>' . $installer->describe() . '</info>');
+        $this->line('Detected platform: <info>'.PHP_OS_FAMILY.'</info>');
+        $this->line('Will install: <info>'.$installer->describe().'</info>');
         $this->newLine();
 
         if (! $this->option('force') && ! $this->confirm('Install scheduler?', true)) {
@@ -40,7 +40,7 @@ final class SchedulerInstallCommand extends Command
 
         if ($message = $installer->postInstallMessage()) {
             foreach (explode("\n", $message) as $line) {
-                $this->line('  ' . $line);
+                $this->line('  '.$line);
             }
         }
 

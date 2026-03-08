@@ -30,9 +30,9 @@ final class RunTaskAction
         $shell = getenv('SHELL') ?: ($_SERVER['SHELL'] ?? '');
 
         $env = [
-            'PATH'    => $path,
-            'HOME'    => getenv('HOME') ?: ($_SERVER['HOME'] ?? ''),
-            'USER'    => getenv('USER') ?: ($_SERVER['USER'] ?? ''),
+            'PATH' => $path,
+            'HOME' => getenv('HOME') ?: ($_SERVER['HOME'] ?? ''),
+            'USER' => getenv('USER') ?: ($_SERVER['USER'] ?? ''),
             'LOGNAME' => getenv('LOGNAME') ?: ($_SERVER['LOGNAME'] ?? ''),
         ];
 
