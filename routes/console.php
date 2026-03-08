@@ -11,7 +11,13 @@ use Illuminate\Support\Facades\Schema;
 // Heartbeat: touch a file every minute so the UI can show scheduler health
 Schedule::call(fn () => touch(storage_path('app/scheduler-heartbeat')))->everyMinute();
 
-if (Schema::hasTable('scheduled_tasks')) {
+try {
+    $hasTable = Schema::hasTable('scheduled_tasks');
+} catch (\Illuminate\Database\QueryException $e) {
+    $hasTable = false;
+}
+
+if ($hasTable) {
     ScheduledTask::enabled()->each(function (ScheduledTask $task): void {
         $runId = null;
 
