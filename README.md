@@ -2,13 +2,7 @@
 
 A local web UI for managing Laravel scheduled tasks stored in a database. Instead of editing PHP files to add or remove cron jobs, you manage everything through a browser.
 
-The system crontab runs one entry every minute:
-
-```
-* * * * * cd /path/to/cron-manager && php artisan schedule:run >> /dev/null 2>&1
-```
-
-This app provides the UI to control which tasks that scheduler actually runs.
+This app provides the UI to control which tasks the scheduler actually runs. A background trigger fires `php artisan schedule:run` every minute — the recommended method depends on your OS.
 
 ## How it works
 
@@ -20,7 +14,6 @@ Tasks are stored in a `scheduled_tasks` database table. On each scheduler invoca
 - Composer
 - Node.js 20+ and npm
 - SQLite (bundled with PHP on most systems)
-- Write access to the system crontab (`crontab -e`)
 
 ## Installation
 
@@ -33,15 +26,39 @@ cd cron-manager
 composer setup
 ```
 
-## Cron setup
+## Scheduler setup
 
-Add one entry to your system crontab (`crontab -e`):
+Run the install command and it will detect your OS and configure the right trigger automatically:
 
+```bash
+php artisan scheduler:install
 ```
-* * * * * cd /path/to/cron-manager && php artisan schedule:run >> /dev/null 2>&1
+
+| Platform | Method | Notes |
+|---|---|---|
+| **macOS** | LaunchAgent (`~/Library/LaunchAgents/`) | Runs in your login session with full Keychain access. Required for tools like `claude` that store credentials in the Keychain. |
+| **Linux** | systemd user timer (`~/.config/systemd/user/`) | Runs as your user via systemd and is managed with `systemctl --user`. |
+| **Windows** | Windows Task Scheduler | Created via `schtasks`. |
+
+To remove the trigger:
+
+```bash
+php artisan scheduler:uninstall
 ```
 
-Replace `/path/to/cron-manager` with the absolute path where you cloned the repo.
+The **Scheduler Health** page (`/health`) shows whether the trigger is installed and whether the scheduler is actively running.
+
+### macOS: manual crontab + LaunchAgent
+
+If you previously added a crontab entry by hand, remove it after installing the LaunchAgent — otherwise `schedule:run` fires twice per minute. The health page will warn you if both are active.
+
+### Linux: systemd lingering
+
+The installer creates a **systemd user timer** that fires every minute. On headless servers or non-login sessions, you may need to enable lingering so the timer persists after logout:
+
+```bash
+loginctl enable-linger $USER
+```
 
 ## Running locally
 
@@ -64,8 +81,10 @@ composer dev          # Start all dev services (server, queue, logs, vite)
 composer test         # Run test suite
 composer setup        # Fresh install: dependencies, .env, key, migrate, build
 
-php artisan migrate   # Run pending migrations
-php artisan tinker    # REPL
+php artisan migrate            # Run pending migrations
+php artisan tinker             # REPL
+php artisan scheduler:install  # Install the platform scheduler trigger
+php artisan scheduler:uninstall # Remove the platform scheduler trigger
 
 npm run dev           # Vite dev server (hot reload)
 npm run build         # Build production assets

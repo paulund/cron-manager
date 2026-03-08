@@ -80,6 +80,10 @@ final class CalendarController
             }
         });
 
+        foreach ($upcoming as &$dayRuns) {
+            usort($dayRuns, fn ($a, $b) => $a['time']->timestamp <=> $b['time']->timestamp);
+        }
+
         return $upcoming;
     }
 

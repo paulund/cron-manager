@@ -9,7 +9,7 @@
     <div class="rounded-2xl border border-stone-200 bg-white p-8">
         <form method="POST" action="{{ route('tasks.store') }}">
             @csrf
-            @include('tasks._form')
+            @include('tasks._form', ['task' => null])
             <div class="flex items-center gap-3 pt-4">
                 <button type="submit" class="btn-primary">Create Task</button>
                 <a href="{{ route('tasks.index') }}" class="btn-secondary">Cancel</a>

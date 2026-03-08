@@ -3,7 +3,7 @@
     <select name="project_id" id="project_id" class="form-input">
         <option value="">— No project —</option>
         @foreach($projects as $project)
-        <option value="{{ $project->id }}" {{ old('project_id', $task->project_id ?? '') == $project->id ? 'selected' : '' }}>
+        <option value="{{ $project->id }}" {{ old('project_id', $task?->project_id ?? '') == $project->id ? 'selected' : '' }}>
             {{ $project->name }}
         </option>
         @endforeach
@@ -18,7 +18,7 @@
         name="name"
         id="name"
         class="form-input"
-        value="{{ old('name', $task->name ?? '') }}"
+        value="{{ old('name', $task?->name ?? '') }}"
         required>
     @error('name') <p class="form-error">{{ $message }}</p> @enderror
 </div>
@@ -29,12 +29,12 @@
         name="description"
         id="description"
         class="form-input"
-        rows="2">{{ old('description', $task->description ?? '') }}</textarea>
+        rows="2">{{ old('description', $task?->description ?? '') }}</textarea>
     @error('description') <p class="form-error">{{ $message }}</p> @enderror
 </div>
 
 <div
-    x-data="{ type: '{{ old('command_type', $task->command_type ?? 'shell') }}' }"
+    x-data="{ type: '{{ old('command_type', $task?->command_type ?? 'shell') }}' }"
     class="form-group">
     <label class="form-label">Command Type *</label>
     <div class="flex gap-3 mb-3">
@@ -45,7 +45,7 @@
                 name="command_type"
                 value="{{ $value }}"
                 x-model="type"
-                {{ old('command_type', $task->command_type ?? 'shell') === $value ? 'checked' : '' }}>
+                {{ old('command_type', $task?->command_type ?? 'shell') === $value ? 'checked' : '' }}>
             <span class="text-sm font-medium">{{ $label }}</span>
         </label>
         @endforeach
@@ -55,7 +55,7 @@
         Any shell command — e.g. <code class="font-mono text-xs">git pull origin main</code>
     </p>
     <p x-show="type === 'claude'" class="text-sm text-blue-600 mb-2">
-        Claude CLI — e.g. <code class="font-mono text-xs">claude --dangerously-skip-permissions -p "summarize recent changes"</code>
+        Claude CLI — e.g. <code class="font-mono text-xs">claude --dangerously-skip-permissions -p "summarize recent changes"</code>. Credentials must exist via <code class="font-mono text-xs">claude login</code>.
     </p>
     <p x-show="type === 'copilot'" class="text-sm text-purple-600 mb-2">
         GitHub Copilot CLI — e.g. <code class="font-mono text-xs">gh copilot suggest "explain this error"</code>
@@ -69,7 +69,7 @@
         rows="3"
         :placeholder="type === 'claude' ? 'claude --dangerously-skip-permissions -p \" ...\"' : type==='copilot' ? 'gh copilot suggest \"...\"' : 'echo hello world'"
         required
-    >{{ old('command', $task->command ?? '') }}</textarea>
+    >{{ old('command', $task?->command ?? '') }}</textarea>
     @error('command') <p class=" form-error">{{ $message }}</p> @enderror
 </div>
 
@@ -80,15 +80,15 @@
         name="working_directory"
         id="working_directory"
         class="form-input font-mono text-sm"
-        placeholder="/Users/paul/my-project"
-        value="{{ old('working_directory', $task->working_directory ?? '') }}">
+        placeholder="/path/to/project"
+        value="{{ old('working_directory', $task?->working_directory ?? '') }}">
     <p class="text-xs text-stone-400 mt-1">Absolute path. Leave blank to use the app root.</p>
     @error('working_directory') <p class="form-error">{{ $message }}</p> @enderror
 </div>
 
 {{-- Environment Variables --}}
 <div
-    x-data="envVarEditor({{ json_encode(old('env_vars', $task->env_vars ?? [])) }})"
+    x-data="envVarEditor({{ json_encode(old('env_vars', $task?->env_vars ?? [])) }})"
     class="form-group">
     <label class="form-label">Environment Variables</label>
     <div class="space-y-2">
@@ -119,13 +119,13 @@
 
 <div class="form-group">
     <label class="form-label">Schedule *</label>
-    @include('tasks._schedule-builder', ['expression' => old('cron_expression', $task->cron_expression ?? '* * * * *')])
+    @include('tasks._schedule-builder', ['expression' => old('cron_expression', $task?->cron_expression ?? '* * * * *')])
     @error('cron_expression') <p class="form-error">{{ $message }}</p> @enderror
 </div>
 
 {{-- Tags --}}
 <div
-    x-data="tagEditor({{ json_encode(old('tags', $task->tags?->pluck('name')->all() ?? [])) }}, {{ json_encode($allTags->pluck('name')->all()) }})"
+    x-data="tagEditor({{ json_encode(old('tags', $task?->tags?->pluck('name')->all() ?? [])) }}, {{ json_encode($allTags->pluck('name')->all()) }})"
     class="form-group">
     <label class="form-label">Tags</label>
 
@@ -167,7 +167,7 @@
     <select name="depends_on_task_id" id="depends_on_task_id" class="form-input">
         <option value="">— None —</option>
         @foreach($allTasks as $otherTask)
-        <option value="{{ $otherTask->id }}" {{ old('depends_on_task_id', $task->depends_on_task_id ?? '') == $otherTask->id ? 'selected' : '' }}>
+        <option value="{{ $otherTask->id }}" {{ old('depends_on_task_id', $task?->depends_on_task_id ?? '') == $otherTask->id ? 'selected' : '' }}>
             {{ $otherTask->name }}
         </option>
         @endforeach
@@ -184,7 +184,7 @@
         name="paused_until"
         id="paused_until"
         class="form-input w-56"
-        value="{{ old('paused_until', $task->paused_until ? $task->paused_until->format('Y-m-d\TH:i') : '') }}">
+        value="{{ old('paused_until', $task?->paused_until ? $task?->paused_until->format('Y-m-d\TH:i') : '') }}">
     <p class="text-xs text-stone-400 mt-1">Scheduler skips this task until the specified time. Leave blank to not snooze.</p>
     @error('paused_until') <p class="form-error">{{ $message }}</p> @enderror
 </div>
@@ -196,7 +196,7 @@
         name="is_enabled"
         id="is_enabled"
         value="1"
-        {{ old('is_enabled', $task->is_enabled ?? true) ? 'checked' : '' }}
+        {{ old('is_enabled', $task?->is_enabled ?? true) ? 'checked' : '' }}
         class="rounded border-stone-300 text-amber-500 focus:ring-amber-400">
     <label for="is_enabled" class="form-label mb-0">Enable this task</label>
 </div>
@@ -208,7 +208,7 @@
         name="prevent_overlap"
         id="prevent_overlap"
         value="1"
-        {{ old('prevent_overlap', $task->prevent_overlap ?? false) ? 'checked' : '' }}
+        {{ old('prevent_overlap', $task?->prevent_overlap ?? false) ? 'checked' : '' }}
         class="rounded border-stone-300 text-amber-500 focus:ring-amber-400">
     <label for="prevent_overlap" class="form-label mb-0">Prevent overlapping runs</label>
     <p class="text-xs text-stone-400">Skip if a previous run of this task is still in progress.</p>
@@ -224,14 +224,14 @@
         min="1"
         max="10000"
         placeholder="Unlimited"
-        value="{{ old('runs_to_keep', $task->runs_to_keep ?? '') }}">
+        value="{{ old('runs_to_keep', $task?->runs_to_keep ?? '') }}">
     <p class="text-xs text-stone-400 mt-1">Maximum number of run history records to retain. Leave blank for unlimited.</p>
     @error('runs_to_keep') <p class="form-error">{{ $message }}</p> @enderror
 </div>
 
 {{-- Failure notifications --}}
 <div
-    x-data="{ notify: {{ old('notify_on_failure', ($task->notify_on_failure ?? false) ? 'true' : 'false') }} }"
+    x-data="{ notify: {{ old('notify_on_failure', ($task?->notify_on_failure ?? false) ? 'true' : 'false') }} }"
     class="form-group">
     <div class="flex items-center gap-3 mb-3">
         <input type="hidden" name="notify_on_failure" value="0">
@@ -241,7 +241,7 @@
             id="notify_on_failure"
             value="1"
             x-model="notify"
-            {{ old('notify_on_failure', $task->notify_on_failure ?? false) ? 'checked' : '' }}
+            {{ old('notify_on_failure', $task?->notify_on_failure ?? false) ? 'checked' : '' }}
             class="rounded border-stone-300 text-amber-500 focus:ring-amber-400">
         <label for="notify_on_failure" class="form-label mb-0">Notify on failure</label>
     </div>
@@ -255,7 +255,7 @@
                 id="notification_email"
                 class="form-input"
                 placeholder="you@example.com"
-                value="{{ old('notification_email', $task->notification_email ?? '') }}">
+                value="{{ old('notification_email', $task?->notification_email ?? '') }}">
             @error('notification_email') <p class="form-error">{{ $message }}</p> @enderror
         </div>
         <div>
@@ -266,7 +266,7 @@
                 id="notification_webhook"
                 class="form-input font-mono text-sm"
                 placeholder="https://hooks.slack.com/…"
-                value="{{ old('notification_webhook', $task->notification_webhook ?? '') }}">
+                value="{{ old('notification_webhook', $task?->notification_webhook ?? '') }}">
             <p class="text-xs text-stone-400 mt-1">A POST request with <code class="font-mono text-xs">{ task, exit_code, output }</code> will be sent on failure.</p>
             @error('notification_webhook') <p class="form-error">{{ $message }}</p> @enderror
         </div>

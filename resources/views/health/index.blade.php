@@ -66,8 +66,47 @@
         </button>
     </div>
 
-    {{-- Crontab detection --}}
-    <div class="flex items-center gap-3 px-5 py-4 rounded-2xl border {{ $cronInstalled ? 'border-emerald-200 bg-emerald-50/40' : 'border-stone-200 bg-white' }} mb-8">
+    {{-- Platform scheduler (LaunchAgent / crontab / Task Scheduler) --}}
+    <div class="flex items-start gap-3 px-5 py-4 rounded-2xl border {{ $schedulerInstalled ? 'border-emerald-200 bg-emerald-50/40' : 'border-stone-200 bg-white' }} mb-3">
+        @if($schedulerInstalled)
+        <svg class="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+        </svg>
+        <div>
+            <span class="text-sm text-emerald-700 font-medium">{{ $installerDescription }} installed</span>
+            @if(PHP_OS_FAMILY === 'Darwin')
+            <p class="text-xs text-stone-400 mt-0.5">
+                {{ $schedulerLoaded ? 'Loaded and running in your login session — Keychain access available.' : 'Installed but not currently loaded.' }}
+            </p>
+            @endif
+        </div>
+        @else
+        <svg class="w-4 h-4 text-stone-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+        </svg>
+        <div>
+            <span class="text-sm text-stone-500">{{ $installerDescription }} not installed</span>
+            <p class="text-xs text-stone-400 mt-0.5">Run <code class="font-mono bg-stone-100 px-1 rounded">{{ $installCommand }}</code> to install.</p>
+        </div>
+        @endif
+    </div>
+
+    {{-- Double-firing warning (macOS only) --}}
+    @if(PHP_OS_FAMILY === 'Darwin' && $schedulerInstalled && $cronInstalled)
+    <div class="flex items-start gap-3 px-5 py-4 rounded-2xl border border-amber-200 bg-amber-50/50 mb-3">
+        <svg class="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+        </svg>
+        <div>
+            <span class="text-sm text-amber-700 font-medium">Double-firing risk</span>
+            <p class="text-xs text-stone-500 mt-0.5">Both the LaunchAgent and a crontab entry are active. The scheduler will fire twice per minute. Remove the crontab entry with <code class="font-mono bg-stone-100 px-1 rounded">crontab -e</code>.</p>
+        </div>
+    </div>
+    @endif
+
+    {{-- Crontab detection (Linux only) --}}
+    @if(PHP_OS_FAMILY !== 'Darwin' && PHP_OS_FAMILY !== 'Windows')
+    <div class="flex items-center gap-3 px-5 py-4 rounded-2xl border {{ $cronInstalled ? 'border-emerald-200 bg-emerald-50/40' : 'border-stone-200 bg-white' }} mb-3">
         @if($cronInstalled)
         <svg class="w-4 h-4 text-emerald-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
@@ -80,10 +119,11 @@
         <span class="text-sm text-stone-500">No crontab entry found for this project</span>
         @endif
     </div>
+    @endif
 
     {{-- Setup instructions (shown when not healthy) --}}
     @if($status !== 'healthy')
-    <div class="rounded-2xl border border-stone-200 bg-white overflow-hidden">
+    <div class="rounded-2xl border border-stone-200 bg-white overflow-hidden mt-8">
         <div class="px-6 py-4 border-b border-stone-100">
             <h2 class="font-semibold text-stone-800">How to enable the scheduler</h2>
             <p class="text-sm text-stone-400 mt-0.5">Add a crontab entry to run the Laravel scheduler every minute.</p>

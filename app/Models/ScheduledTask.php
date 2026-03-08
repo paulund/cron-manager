@@ -91,7 +91,15 @@ class ScheduledTask extends Model
         $command = $envPrefix.$this->command;
 
         if ($this->working_directory) {
-            return 'cd '.escapeshellarg($this->working_directory).' && '.$command;
+            $command = 'cd '.escapeshellarg($this->working_directory).' && '.$command;
+        }
+
+        // Wrap claude commands in a login shell so the subprocess inherits the
+        // user's full environment (PATH, HOME, credentials) without needing an API key.
+        if ($this->command_type === 'claude') {
+            $shell = getenv('SHELL') ?: '/bin/sh';
+
+            return $shell.' -l -c '.escapeshellarg($command);
         }
 
         return $command;
